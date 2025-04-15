@@ -6,15 +6,17 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.math.RotationAxis;
 
 public class HudRenderer {
 
 	private static final Identifier WIDGETS_TEXTURE = Identifier.tryParse("boathud","textures/widgets.png");
+	private static final Identifier ZEEN_LOWER_TEXTURE = Identifier.tryParse("boathud","textures/zeen_lower.png");
+	private static final Identifier ZEEN_MIDDLE_TEXTURE = Identifier.tryParse("boathud","textures/zeen_middle.png");
+	private static final Identifier ZEEN_UPPER_TEXTURE = Identifier.tryParse("boathud","textures/zeen_upper.png");
 	private final MinecraftClient client;
-	private int scaledWidth;
-	private int scaledHeight;
 
-	// The index to be used in these scales is the bar type (stored internally as an integer, defined in Config)
+    // The index to be used in these scales is the bar type (stored internally as an integer, defined in Config)
 	//                                        Pack     Mixed      Blue
 	private static final double[] MIN_V =   {   0d,       8d,      40d}; // Minimum display speed (m/s)
 	private static final double[] MAX_V =   {  40d,      70d,      70d}; // Maximum display speed (m/s)
@@ -32,9 +34,9 @@ public class HudRenderer {
 	}
 
 	public void render(DrawContext graphics, float tickDelta) {
-		this.scaledWidth = this.client.getWindow().getScaledWidth();
-		this.scaledHeight = this.client.getWindow().getScaledHeight();
-		int i = this.scaledWidth / 2;
+        int scaledWidth = this.client.getWindow().getScaledWidth();
+        int scaledHeight = this.client.getWindow().getScaledHeight();
+		int i = scaledWidth / 2;
 		int nameLen = this.client.textRenderer.getWidth(Common.hudData.name);
 
 		// Render boilerplate
@@ -48,29 +50,29 @@ public class HudRenderer {
 
 		if(Config.extended) {
 			// Overlay texture and bar
-			graphics.drawTexture(WIDGETS_TEXTURE, i - 91, this.scaledHeight - 83, 0, 70, 182, 33);
-			this.renderBar(graphics, i - 91, this.scaledHeight - 83);
+			graphics.drawTexture(WIDGETS_TEXTURE, i - 91, scaledHeight - 83, 0, 70, 182, 33);
+			this.renderBar(graphics, i - 91, scaledHeight - 83);
 
 			// Sprites
 			if(Common.hudData.isDriver) {
 				// Left-right
-				graphics.drawTexture(WIDGETS_TEXTURE, i - 86, this.scaledHeight - 65, 61, this.client.options.leftKey.isPressed() ? 38 : 30, 17, 8);
-				graphics.drawTexture(WIDGETS_TEXTURE, i - 63, this.scaledHeight - 65, 79, this.client.options.rightKey.isPressed() ? 38 : 30, 17, 8);
+				graphics.drawTexture(WIDGETS_TEXTURE, i - 86, scaledHeight - 65, 61, this.client.options.leftKey.isPressed() ? 38 : 30, 17, 8);
+				graphics.drawTexture(WIDGETS_TEXTURE, i - 63, scaledHeight - 65, 79, this.client.options.rightKey.isPressed() ? 38 : 30, 17, 8);
 				// Brake-throttle bar
-				graphics.drawTexture(WIDGETS_TEXTURE, i, this.scaledHeight - 55, 0, this.client.options.forwardKey.isPressed() ? 45 : 40, 61, 5);
-				graphics.drawTexture(WIDGETS_TEXTURE, i - 61, this.scaledHeight - 55, 0, this.client.options.backKey.isPressed() ? 35 : 30, 61, 5);
+				graphics.drawTexture(WIDGETS_TEXTURE, i, scaledHeight - 55, 0, this.client.options.forwardKey.isPressed() ? 45 : 40, 61, 5);
+				graphics.drawTexture(WIDGETS_TEXTURE, i - 61, scaledHeight - 55, 0, this.client.options.backKey.isPressed() ? 35 : 30, 61, 5);
 			}
 
 			// Ping
-			this.renderPing(graphics, i + 75 - nameLen, this.scaledHeight - 65);
+			this.renderPing(graphics, i + 75 - nameLen, scaledHeight - 65);
 			
 			// Text
 			// First Row
-			this.typeCentered(graphics, String.format(Config.speedFormat, this.displayedSpeed * Config.speedRate), i - 58, this.scaledHeight - 76, 0xFFFFFF);
-			this.typeCentered(graphics, String.format(Config.angleFormat, Common.hudData.driftAngle), i, this.scaledHeight - 76, 0xFFFFFF);
-			this.typeCentered(graphics, String.format(Config.gFormat, Common.hudData.g), i + 58, this.scaledHeight - 76, 0xFFFFFF);
+			this.typeCentered(graphics, String.format(Config.speedFormat, this.displayedSpeed * Config.speedRate), i - 58, scaledHeight - 76, 0xFFFFFF);
+			this.typeCentered(graphics, String.format(Config.angleFormat, Common.hudData.driftAngle), i, scaledHeight - 76, 0xFFFFFF);
+			this.typeCentered(graphics, String.format(Config.gFormat, Common.hudData.g), i + 58, scaledHeight - 76, 0xFFFFFF);
 			// Second Row
-			graphics.drawTextWithShadow(this.client.textRenderer, Common.hudData.name, i + 88 - nameLen, this.scaledHeight - 65, 0xFFFFFF);
+			graphics.drawTextWithShadow(this.client.textRenderer, Common.hudData.name, i + 88 - nameLen, scaledHeight - 65, 0xFFFFFF);
 
 		} else { // Compact mode
 			// hibi's compact mode (v 1.2.0):
@@ -80,28 +82,46 @@ public class HudRenderer {
 			// this.typeCentered(graphics, String.format(Config.angleFormat, Common.hudData.driftAngle), i + 58, this.scaledHeight - 76, 0xFFFFFF);
 
 			// Sotumney's compact mode (v 1.2.1):
-			graphics.drawTexture(WIDGETS_TEXTURE, i - 91, this.scaledHeight - 61, 0, 50, 182, 20);
-			this.renderBar(graphics, i - 91, this.scaledHeight - 61);
-			graphics.drawTexture(WIDGETS_TEXTURE, i - 21, this.scaledHeight - 55, 61, this.client.options.leftKey.isPressed() ? 38 : 30, 17, 8);
-			graphics.drawTexture(WIDGETS_TEXTURE, i + 3, this.scaledHeight - 55, 79, this.client.options.rightKey.isPressed() ? 38 : 30, 17, 8);
-			graphics.drawTexture(WIDGETS_TEXTURE, i, this.scaledHeight - 45, 0, this.client.options.forwardKey.isPressed() ? 45 : 40, 61, 5);
-			graphics.drawTexture(WIDGETS_TEXTURE, i - 61, this.scaledHeight - 45, 0, this.client.options.backKey.isPressed() ? 35 : 30, 61, 5);
-			this.typeCentered(graphics, String.format(Config.speedFormat, this.displayedSpeed * Config.speedRate), i - 58, this.scaledHeight - 54, 0xFFFFFF);
-			this.typeCentered(graphics, String.format(Config.angleFormat, Common.hudData.driftAngle), i + 58, this.scaledHeight - 54, 0xFFFFFF);
+			graphics.drawTexture(WIDGETS_TEXTURE, i - 91, scaledHeight - 61, 0, 50, 182, 20);
+			this.renderBar(graphics, i - 91, scaledHeight - 61);
+			graphics.drawTexture(WIDGETS_TEXTURE, i - 21, scaledHeight - 55, 61, this.client.options.leftKey.isPressed() ? 38 : 30, 17, 8);
+			graphics.drawTexture(WIDGETS_TEXTURE, i + 3, scaledHeight - 55, 79, this.client.options.rightKey.isPressed() ? 38 : 30, 17, 8);
+			graphics.drawTexture(WIDGETS_TEXTURE, i, scaledHeight - 45, 0, this.client.options.forwardKey.isPressed() ? 45 : 40, 61, 5);
+			graphics.drawTexture(WIDGETS_TEXTURE, i - 61, scaledHeight - 45, 0, this.client.options.backKey.isPressed() ? 35 : 30, 61, 5);
+			this.typeCentered(graphics, String.format(Config.speedFormat, this.displayedSpeed * Config.speedRate), i - 58, scaledHeight - 54, 0xFFFFFF);
+			this.typeCentered(graphics, String.format(Config.angleFormat, Common.hudData.driftAngle), i + 58, scaledHeight - 54, 0xFFFFFF);
 		}
 		RenderSystem.disableBlend();
 	}
 
-	/** Renders the speed bar atop the HUD, uses displayedSpeed to, well, diisplay the speed. */
+	/** Renders the speed bar atop the HUD, uses displayedSpeed to, well, display the speed. */
 	private void renderBar(DrawContext graphics, int x, int y) {
 		graphics.drawTexture(WIDGETS_TEXTURE, x, y, 0, BAR_OFF[Config.barType], 182, 5);
 		if(Common.hudData.speed < MIN_V[Config.barType]) return;
-		if(Common.hudData.speed > MAX_V[Config.barType]) {
-			if(this.client.world.getTime() % 2 == 0) return;
-			graphics.drawTexture(WIDGETS_TEXTURE, x, y, 0, BAR_ON[Config.barType], 182, 5);
-			return;
-		}
-		graphics.drawTexture(WIDGETS_TEXTURE, x, y, 0, BAR_ON[Config.barType], (int)((this.displayedSpeed - MIN_V[Config.barType]) * SCALE_V[Config.barType]), 5);
+//		if(Common.hudData.speed > MAX_V[Config.barType]) {
+//			if(this.client.world.getTime() % 2 == 0) return;
+//			graphics.drawTexture(WIDGETS_TEXTURE, x, y, 0, BAR_ON[Config.barType], 182, 5);
+//			return;
+//		}
+
+		//graphics.drawTexture(WIDGETS_TEXTURE, x, y, 0, BAR_ON[Config.barType], (int)((this.displayedSpeed - MIN_V[Config.barType]) * SCALE_V[Config.barType]), 5);
+
+		// Zeen
+
+		double speedToUse = Math.min(displayedSpeed, MAX_V[Config.barType]);
+
+		graphics.getMatrices().push();
+		graphics.getMatrices().translate(x, y - 10, 0);
+		graphics.getMatrices().multiply(RotationAxis.POSITIVE_Z.rotationDegrees(90f));
+		graphics.getMatrices().scale(15f / 256f, 12f / 256f, 15f / 256f);
+		graphics.drawTexture(ZEEN_LOWER_TEXTURE, 0, 0, 0, 0, 256, 256);
+
+		int fh = (int)((speedToUse - MIN_V[Config.barType]) * SCALE_V[Config.barType] * 256f / 12f);
+		graphics.drawTexture(ZEEN_MIDDLE_TEXTURE, 0, -fh, 0, 0, 256, fh);
+
+		graphics.drawTexture(ZEEN_UPPER_TEXTURE, 0, -256 - fh, 0, 0, 256, 256);
+
+		graphics.getMatrices().pop();
 	}
 
 	/** Implementation is cloned from the notchian ping display in the tab player list.	 */
